@@ -37,6 +37,7 @@ public class PlayerController : MonoBehaviour
     public int rotateSpeed = 5;
     public Canvas mainUI;
     private bool canMove = true;
+    public string username;
 
     // Start is called before the first frame update
     void Start()
