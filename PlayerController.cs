@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Mirror;
 
 /**
  * This will be the main player controller it does not work in the VR environment since I don't have any
@@ -30,7 +31,7 @@ using UnityEngine;
  * @author A1C Jake Brower
  * @date 14 June 2021
  */
-public class PlayerController : MonoBehaviour
+public class PlayerController : NetworkBehaviour
 {
 
     public int movementSpeed = 5;
@@ -38,44 +39,61 @@ public class PlayerController : MonoBehaviour
     public Canvas mainUI;
     private bool canMove = true;
     public string username;
+    public Camera myCam;
 
     // Start is called before the first frame update
     void Start()
     {
-
+        if (isLocalPlayer)
+        {
+            myCam.transform.position = this.transform.position - this.transform.forward*.001f;
+            myCam.transform.LookAt(this.transform.position);
+            myCam.transform.parent = this.transform;
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKey(KeyCode.W) & canMove == true)
+        Destroy(GetComponent<Rigidbody>());
+        Destroy(GetComponent<CapsuleCollider>());
+        Destroy(GetComponent<CharacterController>());
+
+        if (isLocalPlayer)
         {
-            transform.position += transform.forward * Time.deltaTime * movementSpeed;
-        }
-        if (Input.GetKey(KeyCode.A) & canMove == true)
+            myCam.gameObject.SetActive(true);
+            if (Input.GetKey(KeyCode.W) & canMove == true)
+            {
+                transform.position += transform.forward * Time.deltaTime * movementSpeed;
+            }
+            if (Input.GetKey(KeyCode.A) & canMove == true)
+            {
+                transform.position -= transform.right * Time.deltaTime * movementSpeed;
+            }
+            if (Input.GetKey(KeyCode.S) & canMove == true)
+            {
+                transform.position -= transform.forward * Time.deltaTime * movementSpeed;
+            }
+            if (Input.GetKey(KeyCode.D) & canMove == true)
+            {
+                transform.position += transform.right * Time.deltaTime * movementSpeed;
+            }
+            if (Input.GetMouseButton(1) & canMove == true)
+            {
+                float x = rotateSpeed * Input.GetAxis("Mouse X");
+                float y = rotateSpeed * -Input.GetAxis("Mouse Y");
+                transform.Rotate(y, x, 0);
+                float z = transform.eulerAngles.z;
+                transform.Rotate(0, 0, -z);
+            }
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                mainUI.gameObject.SetActive(!mainUI.gameObject.activeSelf);
+                canMove = !canMove;
+            }
+        } else
         {
-            transform.position -= transform.right * Time.deltaTime * movementSpeed;
-        }
-        if (Input.GetKey(KeyCode.S) & canMove == true)
-        {
-            transform.position -= transform.forward * Time.deltaTime * movementSpeed;
-        }
-        if (Input.GetKey(KeyCode.D) & canMove == true)
-        {
-            transform.position += transform.right * Time.deltaTime * movementSpeed;
-        }
-        if (Input.GetMouseButton(1) & canMove == true)
-        {
-            float x = rotateSpeed * Input.GetAxis("Mouse X");
-            float y = rotateSpeed * -Input.GetAxis("Mouse Y");
-            Camera.main.transform.Rotate(y, x, 0);
-            float z = Camera.main.transform.eulerAngles.z;
-            Camera.main.transform.Rotate(0, 0, -z);
-        }
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            mainUI.gameObject.SetActive(!mainUI.gameObject.activeSelf);
-            canMove = !canMove;
+            myCam.gameObject.SetActive(false);
         }
     }
 }
